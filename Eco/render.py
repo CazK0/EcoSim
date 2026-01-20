@@ -3,15 +3,17 @@ import sqlite3
 DB_NAME = "ecosystem.db"
 HTML_FILE = "world.html"
 
-
 def render_world():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-
     cursor.execute("SELECT width, height FROM world_state")
-    width, height = cursor.fetchone()
+    try:
+        width, height = cursor.fetchone()
+    except TypeError:
+        width, height = 50, 50
     cursor.execute("SELECT x, y, type, color FROM entities")
     entities = cursor.fetchall()
+
     entity_map = {}
     for ent in entities:
         x, y, type_name, color = ent
@@ -22,32 +24,34 @@ def render_world():
     <!DOCTYPE html>
     <html>
     <head>
+        <meta http-equiv="refresh" content="1"> 
+
         <style>
-            body {{ background-color: #333; color: white; font-family: monospace; }}
+            body {{ background-color: #222; color: white; font-family: sans-serif; }}
             .grid-container {{
                 display: grid;
-                grid-template-columns: repeat({width}, 15px); /* 15px wide columns */
-                grid-template-rows: repeat({height}, 15px);    /* 15px tall rows */
+                grid-template-columns: repeat({width}, 15px);
+                grid-template-rows: repeat({height}, 15px);
                 gap: 1px;
                 width: fit-content;
                 margin: 20px auto;
-                background-color: #222;
-                border: 1px solid #555;
+                border: 2px solid #555;
             }}
             .cell {{
                 width: 15px;
                 height: 15px;
-                background-color: #1a1a1a; /* Empty cell color */
+                background-color: #1a1a1a;
             }}
             .entity {{
-                border-radius: 50%; /* Circle */
                 width: 100%;
                 height: 100%;
+                border-radius: 50%;
+                transition: all 0.3s; /* Makes the color change smooth */
             }}
         </style>
     </head>
     <body>
-        <h1 style="text-align:center">World State</h1>
+        <h2 style="text-align:center">Infection Simulation (Live)</h2>
         <div class="grid-container">
     """
     for y in range(height):
@@ -65,9 +69,5 @@ def render_world():
     """
     with open(HTML_FILE, "w") as f:
         f.write(html_content)
-
-    print(f"🖼️  Rendered {HTML_FILE}. Open it in your browser.")
-
-
 if __name__ == "__main__":
     render_world()
